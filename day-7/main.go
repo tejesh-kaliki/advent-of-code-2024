@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -42,19 +43,16 @@ func (op MulOp) Repr(repr string, lastNum int64) string {
 type ConcatOp struct{}
 
 func (op ConcatOp) Reverse(total, num int64) (bool, int64) {
-	totalString := fmt.Sprint(total)
-	numString := fmt.Sprint(num)
-	prevTotalString, found := strings.CutSuffix(totalString, numString)
-	if !found || prevTotalString == "" {
+	// Find number of digits in num
+	numDigits := int(math.Floor(math.Log10(float64(num))) + 1)
+	power := int64(math.Pow10(numDigits))
+
+	// If the total does not end with num, can't undo concatenation
+	if power == 0 || total%power != num {
 		return false, 0
 	}
 
-	prevTotal, err := strconv.ParseInt(prevTotalString, 10, 64)
-	if err != nil {
-		log.Println("Error processing previous total:", err, total, num)
-		return false, 0
-	}
-	return true, prevTotal
+	return true, total / power
 }
 
 func (op ConcatOp) Repr(repr string, lastNum int64) string {
@@ -113,11 +111,19 @@ func ParseEquationText(line string) Equation {
 
 }
 
-func FindTotalOfValidEquations(input string, ops []Operation) int64 {
+func ParseEquations(input string) []Equation {
+
 	lines := strings.Split(input, "\n")
+	eqs := make([]Equation, len(lines))
+	for i, line := range lines {
+		eqs[i] = ParseEquationText(line)
+	}
+	return eqs
+}
+
+func FindTotalOfValidEquations(eqs []Equation, ops []Operation) int64 {
 	result := int64(0)
-	for _, line := range lines {
-		eq := ParseEquationText(line)
+	for _, eq := range eqs {
 		if valid, _ := IsTheTotalPossible(eq.Total, eq.Numbers, ops); valid {
 			// fmt.Printf("%d = %s\n", eq.Total, repr)
 			result += eq.Total
@@ -127,6 +133,7 @@ func FindTotalOfValidEquations(input string, ops []Operation) int64 {
 }
 
 func main() {
-	fmt.Println("Solution to 1st part:", FindTotalOfValidEquations(input, []Operation{AddOp{}, MulOp{}}))
-	fmt.Println("Solution to 2nd part:", FindTotalOfValidEquations(input, []Operation{AddOp{}, MulOp{}, ConcatOp{}}))
+	eqs := ParseEquations(input)
+	fmt.Println("Solution to 1st part:", FindTotalOfValidEquations(eqs, []Operation{AddOp{}, MulOp{}}))
+	fmt.Println("Solution to 2nd part:", FindTotalOfValidEquations(eqs, []Operation{AddOp{}, MulOp{}, ConcatOp{}}))
 }

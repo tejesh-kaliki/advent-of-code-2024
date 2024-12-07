@@ -119,7 +119,8 @@ func TestFindTotalOfValidEquations(t *testing.T) {
 21037: 9 7 18 13
 292: 11 6 16 20`
 	want := int64(3749)
-	got := FindTotalOfValidEquations(input, []Operation{AddOp{}, MulOp{}})
+	eqs := ParseEquations(input)
+	got := FindTotalOfValidEquations(eqs, []Operation{AddOp{}, MulOp{}})
 
 	if got != want {
 		t.Errorf("Got wrong output: got %d, want %d", got, want)
@@ -137,7 +138,8 @@ func TestFindTotalOfValidEquationsPart2(t *testing.T) {
 21037: 9 7 18 13
 292: 11 6 16 20`
 	want := int64(11387)
-	got := FindTotalOfValidEquations(input, []Operation{AddOp{}, MulOp{}, ConcatOp{}})
+	eqs := ParseEquations(input)
+	got := FindTotalOfValidEquations(eqs, []Operation{AddOp{}, MulOp{}, ConcatOp{}})
 
 	if got != want {
 		t.Errorf("Got wrong output: got %d, want %d", got, want)
@@ -179,5 +181,13 @@ func TestConcatOperationReverse(t *testing.T) {
 				t.Errorf("Got wrong output: got %d, want %d", gotPrevTotal, testcase.PrevTotal)
 			}
 		})
+	}
+}
+
+func BenchmarkFindTotalOfValidEquationsWithConcat(b *testing.B) {
+	eqs := ParseEquations(input)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		FindTotalOfValidEquations(eqs, []Operation{AddOp{}, MulOp{}, ConcatOp{}})
 	}
 }
