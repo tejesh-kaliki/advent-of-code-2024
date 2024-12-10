@@ -6,8 +6,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
-	"sync/atomic"
 )
 
 //go:embed input.txt
@@ -108,21 +106,20 @@ func (grid Grid) FindPossibleTrails(start Position) int {
 }
 
 func (grid Grid) FindTotalScore(scoreFinder func(Position) int) int {
-	var wg sync.WaitGroup
-	var total atomic.Int32
+	scoreCh := make(chan int)
 
 	startingPos := grid.IdentifyStartingPositions()
 	for _, pos := range startingPos {
-		wg.Add(1)
-
 		go func() {
-			defer wg.Done()
-			score := scoreFinder(pos)
-			total.Add(int32(score))
+			scoreCh <- scoreFinder(pos)
 		}()
 	}
-	wg.Wait()
-	return int(total.Load())
+
+	total := 0
+	for i := 0; i < len(startingPos); i++ {
+		total += <-scoreCh
+	}
+	return total
 }
 
 func ReadInput(input string) Grid {
