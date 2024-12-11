@@ -106,9 +106,9 @@ func (grid Grid) FindPossibleTrails(start Position) int {
 }
 
 func (grid Grid) FindTotalScore(scoreFinder func(Position) int) int {
-	scoreCh := make(chan int)
-
 	startingPos := grid.IdentifyStartingPositions()
+
+	scoreCh := make(chan int, len(startingPos))
 	for _, pos := range startingPos {
 		go func() {
 			scoreCh <- scoreFinder(pos)
