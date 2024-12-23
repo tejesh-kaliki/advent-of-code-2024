@@ -108,6 +108,7 @@ func SolvePart2(graph Graph) string {
 
 		for _, groupIndices := range groupsOfNIndices {
 			connected := FindVerticesConnectingAll(graph, groupIndices)
+			nextGroupsOfIndices = slices.Grow(nextGroupsOfIndices, len(connected))
 			for _, vert := range connected {
 				newGroup := make([]int, len(groupIndices), len(groupIndices)+1)
 				copy(newGroup, groupIndices)
@@ -118,13 +119,11 @@ func SolvePart2(graph Graph) string {
 		}
 
 		if len(nextGroupsOfIndices) == 0 {
-			break
+			return GetTextFromIndices(graph, groupsOfNIndices[0])
 		}
 
 		groupsOfNIndices = nextGroupsOfIndices
 	}
-
-	return GetTextFromIndices(graph, groupsOfNIndices[0])
 }
 
 func ReadInput(input string) Graph {
