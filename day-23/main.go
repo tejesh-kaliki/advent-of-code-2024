@@ -15,8 +15,9 @@ type Edge struct {
 }
 
 type Graph struct {
-	Vertices []string
-	Edges    [][]bool
+	Vertices    []string
+	Edges       [][]bool
+	EdgeIndices [][]int
 }
 
 func FindInterconnectedComputersOfSize3(graph Graph) [][3]string {
@@ -101,7 +102,7 @@ func GetTextFromIndices(graph Graph, indices []int) string {
 }
 
 func SolvePart2(graph Graph) string {
-	groupsOfNIndices := FindInterconnectedComputersOfSize3Indices(graph)
+	groupsOfNIndices := graph.EdgeIndices
 
 	for {
 		nextGroupsOfIndices := make([][]int, 0)
@@ -143,16 +144,20 @@ func ReadInput(input string) Graph {
 	}
 
 	slices.Sort(vertices)
-	graph := Graph{Vertices: vertices, Edges: make([][]bool, len(vertices))}
-	for i := range graph.Edges {
+	graph := Graph{Vertices: vertices, Edges: make([][]bool, len(vertices)), EdgeIndices: make([][]int, len(edges))}
+	for i := range graph.Vertices {
 		graph.Edges[i] = make([]bool, len(vertices))
 	}
 
-	for _, edge := range edges {
+	for i, edge := range edges {
 		v1Index := slices.Index(graph.Vertices, edge.V1)
 		v2Index := slices.Index(graph.Vertices, edge.V2)
 		graph.Edges[v1Index][v2Index] = true
 		graph.Edges[v2Index][v1Index] = true
+		if v1Index > v2Index {
+			v1Index, v2Index = v2Index, v1Index
+		}
+		graph.EdgeIndices[i] = []int{v1Index, v2Index}
 	}
 
 	return graph
